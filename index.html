@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ESP32 LEDコントロール</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    button { font-size: 20px; padding: 10px 20px; margin: 10px; }
+  </style>
+</head>
+<body>
+  <h1>💡 ESP32 LED コントロール</h1>
+  <button onclick="updateLED('on')">LED ON</button>
+  <button onclick="updateLED('off')">LED OFF</button>
+
+  <script>
+    const username = "あなたのGitHubユーザー名";
+    const repo = "esp32-control"; // リポジトリ名
+    const filename = "led_status.json";
+    const token = "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";
+
+    async function updateLED(state) {
+      const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
+
+      // 既存ファイルのSHAを取得
+      const res = await fetch(apiUrl, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
+      });
+      const data = await res.json();
+      const sha = data.sha;
+
+      // 新しいJSONの内容
+      const newContent = btoa(JSON.stringify({ led: state }));
+
+      // 更新リクエスト
+      const response = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        },
+        body: JSON.stringify({
+          message: `Set LED to ${state}`,
+          content: newContent,
+          sha: sha
+        })
+      });
+
+      if (response.ok) {
+        alert(`LEDを「${state.toUpperCase()}」に設定しました`);
+      } else {
+        alert("更新に失敗しました");
+      }
+    }
+  </script>
+</body>
+</html>
